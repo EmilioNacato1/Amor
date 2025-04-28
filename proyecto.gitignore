@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Archivos de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Otros archivos que podrías querer ignorar
+.DS_Store
+.idea/
+.vscode/
+*.log
+dist/
+build/
