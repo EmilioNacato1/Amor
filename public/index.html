@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Album de Amor 💖</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Add favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>" type="image/svg+xml">
+</head>
+<body>
+    <!-- Floating hearts background -->
+    <div class="floating-hearts" id="floating-hearts"></div>
+    
+    <!-- Initial heart burst effect -->
+    <div id="heart-burst"></div>
+    
+    <h1>💞 Nuestro Álbum de Amor 💞</h1>
+    
+    <!-- Love quote section -->
+    <div class="love-quote" id="love-quote">
+        El amor no necesita ser perfecto, solo necesita ser verdadero.
+    </div>
+
+    <section id="nueva-salida">
+        <h2>Agregar Nuevo Recuerdo</h2>
+        <form id="formulario-salida" enctype="multipart/form-data">
+            <div class="form-tabs">
+                <button type="button" class="tab-button active" data-tab="new">Crear Nuevo</button>
+                <button type="button" class="tab-button" data-tab="edit">Editar Existente</button>
+            </div>
+            
+            <!-- Tab para crear nuevo álbum -->
+            <div class="tab-content active" id="tab-new">
+                <input type="text" name="salidaNombre" placeholder="Nombre de nuestro recuerdo" required>
+                <input type="date" name="salidaFecha" required>
+                <input type="file" name="fotos" multiple accept="image/*,video/*" required>
+                <input type="hidden" name="modo" value="nuevo">
+                <button type="submit">💖 Guardar Recuerdo 💖</button>
+            </div>
+            
+            <!-- Tab para editar álbum existente -->
+            <div class="tab-content" id="tab-edit">
+                <select name="albumExistente" id="albumExistente">
+                    <option value="">Selecciona un álbum...</option>
+                    <!-- Las opciones se cargarán desde JavaScript -->
+                </select>
+                <input type="file" name="fotosAdicionales" multiple accept="image/*,video/*" required>
+                <input type="hidden" name="modo" value="editar">
+                <button type="submit">💖 Actualizar Álbum 💖</button>
+            </div>
+        </form>
+    </section>
+
+    <hr>
+
+    <section id="galeria">
+        <h2>📸 Nuestros Momentos Especiales 📸</h2>
+        <div id="contenedor-salidas"></div>
+    </section>
+
+    <div id="pagination">
+        <button id="prevPage">⬅ Anterior</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage">Siguiente ➡</button>
+    </div>
+
+    <div id="imageModal">
+        <span class="close">&times;</span>
+        <div id="modalContent">
+            <!-- Content (image or video) will be inserted here by JS -->
+        </div>
+        <button class="prev">⬅</button>
+        <button class="next">➡</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
