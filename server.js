@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 
-// Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Servir la carpeta 'uploads' como estática
