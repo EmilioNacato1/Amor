@@ -3,7 +3,6 @@ const itemsPerPage = 1; // Mostrar una carpeta por página
 
 let currentMediaIndex = 0;
 let currentMedia = [];
-let albumesList = []; // Lista de álbumes disponibles
 
 // Collection of romantic love quotes in Spanish
 const loveQuotes = [
@@ -32,81 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start rotating love quotes
     startRotatingQuotes();
     
-    // Setup form tabs
-    setupFormTabs();
-    
-    // Cargar álbumes y configurar el select
-    cargarAlbumesList();
-    
     // Load albums
     cargarSalidas();
-
-    const formulario = document.getElementById('formulario-salida');
-    formulario.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // Determinar el modo (nuevo o editar)
-        const activeTab = document.querySelector('.tab-button.active').dataset.tab;
-        const modo = activeTab === 'new' ? 'nuevo' : 'editar';
-        
-        // Crear un nuevo FormData para controlar exactamente qué campos se envían
-        const formData = new FormData();
-        
-        if (modo === 'nuevo') {
-            // Si estamos creando un nuevo álbum
-            formData.append('salidaFecha', document.querySelector('[name="salidaFecha"]').value);
-            formData.append('salidaNombre', document.querySelector('[name="salidaNombre"]').value);
-            
-            // Agregar archivos
-            const fotosInput = document.querySelector('[name="fotos"]');
-            for (let i = 0; i < fotosInput.files.length; i++) {
-                formData.append('fotos', fotosInput.files[i]);
-            }
-            
-            // URL para crear nuevo álbum
-            url = '/api/subir';
-        } else {
-            // Si estamos editando un álbum existente
-            formData.append('albumExistente', document.querySelector('[name="albumExistente"]').value);
-            
-            // Validar que se haya seleccionado un álbum
-            const albumSeleccionado = document.querySelector('[name="albumExistente"]').value;
-            if (!albumSeleccionado) {
-                showErrorMessage('Por favor selecciona un álbum para editar');
-                return;
-            }
-            
-            // Agregar archivos adicionales
-            const fotosInput = document.querySelector('[name="fotosAdicionales"]');
-            for (let i = 0; i < fotosInput.files.length; i++) {
-                formData.append('fotosAdicionales', fotosInput.files[i]);
-            }
-            
-            // URL para editar álbum existente
-            url = '/api/editar';
-        }
-
-        console.log("Modo:", modo);
-        
-        const respuesta = await fetch(url, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (respuesta.ok) {
-            if (modo === 'nuevo') {
-                showSuccessMessage('¡Recuerdo guardado con éxito! ❤️');
-            } else {
-                showSuccessMessage('¡Álbum actualizado con éxito! ❤️');
-            }
-            formulario.reset();
-            cargarSalidas(); // Recargar galería
-            cargarAlbumesList(); // Actualizar la lista de álbumes
-        } else {
-            const errorData = await respuesta.json();
-            showErrorMessage(errorData.error || 'Error al procesar la solicitud');
-        }
-    });
 
     // Paginación
     document.getElementById('nextPage').addEventListener('click', () => {
@@ -153,74 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-// Configurar las pestañas del formulario
-function setupFormTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Desactivar todos los botones y contenidos
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Activar el botón seleccionado
-            button.classList.add('active');
-            
-            // Activar el contenido correspondiente
-            const tabId = button.dataset.tab;
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            
-            // Actualizar el valor del campo modo
-            document.querySelector('input[name="modo"]').value = tabId === 'new' ? 'nuevo' : 'editar';
-            
-            // Alternar los atributos required según la pestaña activa
-            if (tabId === 'new') {
-                document.querySelector('input[name="salidaNombre"]').required = true;
-                document.querySelector('input[name="salidaFecha"]').required = true;
-                document.querySelector('input[name="fotos"]').required = true;
-                document.querySelector('select[name="albumExistente"]').required = false;
-                document.querySelector('input[name="fotosAdicionales"]').required = false;
-            } else {
-                document.querySelector('input[name="salidaNombre"]').required = false;
-                document.querySelector('input[name="salidaFecha"]').required = false;
-                document.querySelector('input[name="fotos"]').required = false;
-                document.querySelector('select[name="albumExistente"]').required = true;
-                document.querySelector('input[name="fotosAdicionales"]').required = true;
-            }
-        });
-    });
-}
-
-// Cargar la lista de álbumes disponibles para editar
-async function cargarAlbumesList() {
-    try {
-        const respuesta = await fetch('/api/albumes');
-        const albumes = await respuesta.json();
-        albumesList = albumes;
-        
-        // Actualizar el select con los álbumes disponibles
-        const selectAlbum = document.getElementById('albumExistente');
-        selectAlbum.innerHTML = '<option value="">Selecciona un álbum...</option>';
-        
-        albumes.forEach(album => {
-            const option = document.createElement('option');
-            option.value = album.carpeta;
-            
-            // Extraer nombre para mostrar (sin fecha si está en formato fecha_nombre)
-            let displayName = album.carpeta;
-            if (displayName.includes('_')) {
-                displayName = displayName.split('_')[1];
-            }
-            
-            option.textContent = displayName;
-            selectAlbum.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error al cargar la lista de álbumes', error);
-    }
-}
 
 // Create floating hearts in the background
 function createFloatingHearts() {
@@ -359,7 +217,7 @@ async function cargarSalidas() {
 
         // Extract display name from folder name
         let displayName = salida.nombre;
-        let carpetaOriginal = salida.nombre; // Guardamos el nombre original para eliminación
+        let carpetaOriginal = salida.nombre; // Guardamos el nombre original
         
         if (displayName.includes('_')) {
             displayName = displayName.split('_')[1]; // Get part after the date
@@ -394,61 +252,6 @@ async function cargarSalidas() {
                     img.style.animation = `fadeIn 0.5s ease forwards ${index * 0.1}s`;
                     img.style.opacity = "0";
                     
-                    // Botón de eliminar
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete-btn';
-                    deleteBtn.innerHTML = '❌';
-                    deleteBtn.title = 'Eliminar foto';
-                    
-                    // Mostrar botón de eliminar solo al pasar el ratón
-                    fotoContainer.addEventListener('mouseenter', () => {
-                        deleteBtn.style.opacity = '1';
-                    });
-                    
-                    fotoContainer.addEventListener('mouseleave', () => {
-                        deleteBtn.style.opacity = '0';
-                    });
-                    
-                    // Evento para eliminar la foto
-                    deleteBtn.addEventListener('click', async (e) => {
-                        e.stopPropagation(); // Evitar que se abra la modal
-                        
-                        if (confirm('¿Estás seguro de eliminar esta foto?')) {
-                            try {
-                                const respuesta = await fetch('/api/eliminar-foto', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        carpeta: carpetaOriginal,
-                                        rutaFoto: archivo
-                                    })
-                                });
-                                
-                                if (respuesta.ok) {
-                                    showSuccessMessage('Foto eliminada correctamente');
-                                    fotoContainer.style.animation = 'fadeOut 0.5s ease forwards';
-                                    setTimeout(() => {
-                                        fotoContainer.remove();
-                                        // Si no quedan fotos, mostrar mensaje
-                                        if (archivosDiv.children.length === 0) {
-                                            const noImages = document.createElement('p');
-                                            noImages.textContent = 'No hay imágenes en esta carpeta';
-                                            archivosDiv.appendChild(noImages);
-                                        }
-                                    }, 500);
-                                } else {
-                                    const error = await respuesta.json();
-                                    showErrorMessage(error.error || 'Error al eliminar la foto');
-                                }
-                            } catch (error) {
-                                console.error('Error:', error);
-                                showErrorMessage('Error al eliminar la foto');
-                            }
-                        }
-                    });
-                    
                     img.addEventListener('click', () => {
                         currentMedia = archivos;
                         currentMediaIndex = index;
@@ -457,7 +260,6 @@ async function cargarSalidas() {
                     });
                     
                     fotoContainer.appendChild(img);
-                    fotoContainer.appendChild(deleteBtn);
                     archivosDiv.appendChild(fotoContainer);
                 } else if (/\.mp4$/i.test(archivo)) {
                     const videoContainer = document.createElement('div');
@@ -470,66 +272,10 @@ async function cargarSalidas() {
                     video.style.animation = `fadeIn 0.5s ease forwards ${index * 0.1}s`;
                     video.style.opacity = "0";
                     
-                    // Botón de eliminar para video
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete-btn';
-                    deleteBtn.innerHTML = '❌';
-                    deleteBtn.title = 'Eliminar video';
-                    
-                    // Mostrar botón de eliminar solo al pasar el ratón
-                    videoContainer.addEventListener('mouseenter', () => {
-                        deleteBtn.style.opacity = '1';
-                    });
-                    
-                    videoContainer.addEventListener('mouseleave', () => {
-                        deleteBtn.style.opacity = '0';
-                    });
-                    
-                    // Evento para eliminar el video
-                    deleteBtn.addEventListener('click', async (e) => {
-                        e.stopPropagation(); // Evitar que se abra la modal
-                        
-                        if (confirm('¿Estás seguro de eliminar este video?')) {
-                            try {
-                                const respuesta = await fetch('/api/eliminar-foto', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        carpeta: carpetaOriginal,
-                                        rutaFoto: archivo
-                                    })
-                                });
-                                
-                                if (respuesta.ok) {
-                                    showSuccessMessage('Video eliminado correctamente');
-                                    videoContainer.style.animation = 'fadeOut 0.5s ease forwards';
-                                    setTimeout(() => {
-                                        videoContainer.remove();
-                                        // Si no quedan elementos, mostrar mensaje
-                                        if (archivosDiv.children.length === 0) {
-                                            const noImages = document.createElement('p');
-                                            noImages.textContent = 'No hay contenido en esta carpeta';
-                                            archivosDiv.appendChild(noImages);
-                                        }
-                                    }, 500);
-                                } else {
-                                    const error = await respuesta.json();
-                                    showErrorMessage(error.error || 'Error al eliminar el video');
-                                }
-                            } catch (error) {
-                                console.error('Error:', error);
-                                showErrorMessage('Error al eliminar el video');
-                            }
-                        }
-                    });
-                    
                     videoContainer.appendChild(video);
-                    videoContainer.appendChild(deleteBtn);
                     
                     videoContainer.addEventListener('click', (e) => {
-                        // Only trigger modal if we're not clicking on the video controls or delete button
+                        // Only trigger modal if we're not clicking on the video controls
                         if (e.target === videoContainer || e.target === video) {
                             currentMedia = archivos;
                             currentMediaIndex = index;
@@ -553,42 +299,4 @@ async function cargarSalidas() {
     // Control de los botones de paginación
     document.getElementById('prevPage').disabled = currentPage === 1;
     document.getElementById('nextPage').disabled = currentPage === totalPages || totalItems === 0;
-}
-
-// Show a stylish success message
-function showSuccessMessage(message) {
-    const messageEl = document.createElement('div');
-    messageEl.className = 'message success-message';
-    messageEl.innerHTML = `<div class="message-content">${message}</div>`;
-    document.body.appendChild(messageEl);
-    
-    setTimeout(() => {
-        messageEl.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        messageEl.classList.remove('show');
-        setTimeout(() => {
-            messageEl.remove();
-        }, 500);
-    }, 3000);
-}
-
-// Show a stylish error message
-function showErrorMessage(message) {
-    const messageEl = document.createElement('div');
-    messageEl.className = 'message error-message';
-    messageEl.innerHTML = `<div class="message-content">${message}</div>`;
-    document.body.appendChild(messageEl);
-    
-    setTimeout(() => {
-        messageEl.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        messageEl.classList.remove('show');
-        setTimeout(() => {
-            messageEl.remove();
-        }, 500);
-    }, 3000);
 }
