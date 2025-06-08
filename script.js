@@ -183,13 +183,13 @@ function updateModalContent(mediaPath) {
     if (/\.(jpg|jpeg|png|gif)$/i.test(mediaPath)) {
         // If image
         const img = document.createElement('img');
-        img.src = `/uploads/${mediaPath}`;
+        img.src = `uploads/${mediaPath}`;
         img.alt = 'Foto ampliada';
         modalContent.appendChild(img);
     } else if (/\.mp4$/i.test(mediaPath)) {
         // If video
         const video = document.createElement('video');
-        video.src = `/uploads/${mediaPath}`;
+        video.src = `uploads/${mediaPath}`;
         video.controls = true;
         video.autoplay = true;
         modalContent.appendChild(video);
@@ -245,12 +245,12 @@ async function cargarSalidas() {
                         fotoContainer.className = 'foto-item';
                         
                         const img = document.createElement('img');
-                        img.src = `/uploads/${carpetaOriginal}/${archivo}`;
+                        img.src = `uploads/${carpetaOriginal}/${archivo}`;
                         img.alt = 'Foto de salida';
                         img.loading = "lazy"; // Lazy loading for better performance
                         
                         img.addEventListener('click', () => {
-                            currentMedia = archivos.map(arch => `/uploads/${carpetaOriginal}/${arch}`);
+                            currentMedia = archivos.map(arch => `uploads/${carpetaOriginal}/${arch}`);
                             currentMediaIndex = index;
                             const modal = document.getElementById('imageModal');
                             modal.style.display = 'block';
@@ -264,12 +264,12 @@ async function cargarSalidas() {
                         videoContainer.className = 'foto-item';
                         
                         const video = document.createElement('video');
-                        video.src = `/uploads/${carpetaOriginal}/${archivo}`;
+                        video.src = `uploads/${carpetaOriginal}/${archivo}`;
                         video.controls = true;
                         video.preload = "metadata";
                         
                         video.addEventListener('click', () => {
-                            currentMedia = archivos.map(arch => `/uploads/${carpetaOriginal}/${arch}`);
+                            currentMedia = archivos.map(arch => `uploads/${carpetaOriginal}/${arch}`);
                             currentMediaIndex = index;
                             const modal = document.getElementById('imageModal');
                             modal.style.display = 'block';
