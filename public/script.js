@@ -183,13 +183,13 @@ function updateModalContent(mediaPath) {
     if (/\.(jpg|jpeg|png|gif)$/i.test(mediaPath)) {
         // If image
         const img = document.createElement('img');
-        img.src = `uploads/${mediaPath}`;
+        img.src = mediaPath;
         img.alt = 'Foto ampliada';
         modalContent.appendChild(img);
     } else if (/\.mp4$/i.test(mediaPath)) {
         // If video
         const video = document.createElement('video');
-        video.src = `uploads/${mediaPath}`;
+        video.src = mediaPath;
         video.controls = true;
         video.autoplay = true;
         modalContent.appendChild(video);
@@ -200,99 +200,103 @@ async function cargarSalidas() {
     const contenedor = document.getElementById('contenedor-salidas');
     contenedor.innerHTML = ''; // Limpiar el contenedor antes de mostrar las nuevas salidas
 
-    try {
-        const respuesta = await fetch('/api/salidas');
-        const salidas = await respuesta.json();
+    const respuesta = await fetch('/api/salidas');
+    const salidas = await respuesta.json();
 
-        const totalItems = salidas.length;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const totalItems = salidas.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-        // Mostrar la página actual
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const salidasPagina = salidas.slice(start, end);
+    // Mostrar la página actual
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const salidasPagina = salidas.slice(start, end);
 
-        salidasPagina.forEach(salida => {
-            const div = document.createElement('div');
-            div.className = 'salida';
+    salidasPagina.forEach(salida => {
+        const div = document.createElement('div');
+        div.className = 'salida';
 
-            // Extract display name from folder name
-            let displayName = salida.nombre;
-            let carpetaOriginal = salida.nombre; // Guardamos el nombre original
-            
-            if (displayName.includes('_')) {
-                displayName = displayName.split('_')[1]; // Get part after the date
-            }
+        // Extract display name from folder name
+        let displayName = salida.nombre;
+        let carpetaOriginal = salida.nombre; // Guardamos el nombre original
+        
+        if (displayName.includes('_')) {
+            displayName = displayName.split('_')[1]; // Get part after the date
+        }
 
-            const titulo = document.createElement('h3');
-            titulo.textContent = displayName;
-            div.appendChild(titulo);
+        const titulo = document.createElement('h3');
+        titulo.textContent = displayName;
+        div.appendChild(titulo);
 
-            const archivosDiv = document.createElement('div');
-            archivosDiv.className = 'fotos';
+        const archivosDiv = document.createElement('div');
+        archivosDiv.className = 'fotos';
 
-            // Make sure we're handling the correct field name from the server
-            const archivos = salida.archivos || salida.fotos;
-            
-            if (!archivos || archivos.length === 0) {
-                const noImages = document.createElement('p');
-                noImages.textContent = 'No hay imágenes en esta carpeta';
-                archivosDiv.appendChild(noImages);
-            } else {
-                archivos.forEach((archivo, index) => {
-                    if (/\.(jpg|jpeg|png|gif)$/i.test(archivo)) {
-                        const fotoContainer = document.createElement('div');
-                        fotoContainer.className = 'foto-item';
-                        
-                        const img = document.createElement('img');
-                        img.src = `uploads/${carpetaOriginal}/${archivo}`;
-                        img.alt = 'Foto de salida';
-                        img.loading = "lazy"; // Lazy loading for better performance
-                        
-                        img.addEventListener('click', () => {
-                            currentMedia = archivos.map(arch => `uploads/${carpetaOriginal}/${arch}`);
+        // Make sure we're handling the correct field name from the server
+        const archivos = salida.archivos || salida.fotos;
+        
+        if (!archivos || archivos.length === 0) {
+            const noImages = document.createElement('p');
+            noImages.textContent = 'No hay imágenes en esta carpeta';
+            archivosDiv.appendChild(noImages);
+        } else {
+            archivos.forEach((archivo, index) => {
+                if (/\.(jpg|jpeg|png|gif)$/i.test(archivo)) {
+                    const fotoContainer = document.createElement('div');
+                    fotoContainer.className = 'foto-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = archivo;
+                    img.alt = 'Foto de salida';
+                    img.loading = "lazy"; // Lazy loading for better performance
+                    
+                    // Add a slight delay for staggered appearance
+                    img.style.animation = `fadeIn 0.5s ease forwards ${index * 0.1}s`;
+                    img.style.opacity = "0";
+                    
+                    img.addEventListener('click', () => {
+                        currentMedia = archivos;
+                        currentMediaIndex = index;
+                        updateModalContent(archivo);
+                        document.getElementById('imageModal').style.display = 'flex';
+                    });
+                    
+                    fotoContainer.appendChild(img);
+                    archivosDiv.appendChild(fotoContainer);
+                } else if (/\.mp4$/i.test(archivo)) {
+                    const videoContainer = document.createElement('div');
+                    videoContainer.className = 'video-container foto-item';
+                    
+                    const video = document.createElement('video');
+                    video.src = archivo;
+                    video.controls = true;
+                    video.style.maxWidth = '100%';
+                    video.style.animation = `fadeIn 0.5s ease forwards ${index * 0.1}s`;
+                    video.style.opacity = "0";
+                    
+                    videoContainer.appendChild(video);
+                    
+                    videoContainer.addEventListener('click', (e) => {
+                        // Only trigger modal if we're not clicking on the video controls
+                        if (e.target === videoContainer || e.target === video) {
+                            currentMedia = archivos;
                             currentMediaIndex = index;
-                            const modal = document.getElementById('imageModal');
-                            modal.style.display = 'block';
-                            updateModalContent(`${carpetaOriginal}/${archivo}`);
-                        });
-                        
-                        fotoContainer.appendChild(img);
-                        archivosDiv.appendChild(fotoContainer);
-                    } else if (/\.mp4$/i.test(archivo)) {
-                        const videoContainer = document.createElement('div');
-                        videoContainer.className = 'foto-item';
-                        
-                        const video = document.createElement('video');
-                        video.src = `uploads/${carpetaOriginal}/${archivo}`;
-                        video.controls = true;
-                        video.preload = "metadata";
-                        
-                        video.addEventListener('click', () => {
-                            currentMedia = archivos.map(arch => `uploads/${carpetaOriginal}/${arch}`);
-                            currentMediaIndex = index;
-                            const modal = document.getElementById('imageModal');
-                            modal.style.display = 'block';
-                            updateModalContent(`${carpetaOriginal}/${archivo}`);
-                        });
-                        
-                        videoContainer.appendChild(video);
-                        archivosDiv.appendChild(videoContainer);
-                    }
-                });
-            }
+                            updateModalContent(archivo);
+                            document.getElementById('imageModal').style.display = 'flex';
+                        }
+                    });
+                    
+                    archivosDiv.appendChild(videoContainer);
+                }
+            });
+        }
 
-            div.appendChild(archivosDiv);
-            contenedor.appendChild(div);
-        });
+        div.appendChild(archivosDiv);
+        contenedor.appendChild(div);
+    });
 
-        // Actualizar información de paginación
-        document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === totalPages;
-    } catch (error) {
-        console.error('Error al cargar las salidas:', error);
-        const contenedor = document.getElementById('contenedor-salidas');
-        contenedor.innerHTML = '<p class="error">Error al cargar las imágenes. Por favor, intenta de nuevo más tarde.</p>';
-    }
-} 
+    // Actualizar la información de la página
+    document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages || 1}`;
+
+    // Control de los botones de paginación
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage === totalPages || totalItems === 0;
+}
